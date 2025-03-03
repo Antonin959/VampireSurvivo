@@ -17,6 +17,7 @@ TagManager:
   - gold2
   - ammo
   - tower
+  - "caf\xE9"
   layers:
   - Default
   - TransparentFX

@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Content;
-using UnityEditor.Tilemaps;
 using UnityEngine;
+using TMPro;
 
 public class gen : MonoBehaviour
 {
+    public TMP_Text WaveText;
     public GameObject tile;
     public EnemieScript enemie;
     public int thepath = 0;
@@ -77,7 +76,16 @@ public class gen : MonoBehaviour
     readonly List<(float waveTimer, List<(float groupTimer, int enIndex)> group)> enemieWave = new List<(float, List<(float, int)>)>()
     {
         (6.0f, new List<(float, int)>() { (0.0f, 1), (1.0f, 1), (1.0f, 1)}),
-        (3.0f, new List<(float, int)>() { (0.0f, 1), (1.0f, 1), (1.0f, 1)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 1), (1.0f, 1), (1.0f, 1)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 2), (1.0f, 2), (1.0f, 1)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 1), (1.0f, 2), (1.0f, 2)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 1), (0.2f, 1), (0.2f, 1) ,(0.2f, 1) ,(1.0f, 1) ,(0.2f, 1), (0.2f, 1), (0.2f, 1)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 2), (1.0f, 2), (1.0f, 2) ,(1.0f, 2) ,(1.0f, 2) ,(1.0f, 2)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 2), (1.0f, 2), (1.0f, 1)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 1), (1.0f, 2), (1.0f, 2)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 2), (1.0f, 2), (1.0f, 2) ,(1.0f, 2) ,(1.0f, 2) ,(1.0f, 2)}),
+        (10.0f, new List<(float, int)>() { (0.0f, 2), (1.0f, 2), (1.0f, 2) ,(1.0f, 2) ,(1.0f, 2) ,(1.0f, 2)}),
+
     };
 
     void Start()
@@ -85,21 +93,12 @@ public class gen : MonoBehaviour
         p.Add(new P(new Vector3(0, 0, 0), Instantiate(linePrefab)));
         Debug.Log(p[0].line + " " + linePrefab);
         Debug.Log(p[0].line + "  " + linePrefab, p[0].line);
+
+        StartCoroutine(Generation(8));
     }
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) || Input.GetKey(KeyCode.R))
-        {
-            StartCoroutine(Generation(8));
-        }
-
-        if (Input.GetKeyDown(KeyCode.P) || Input.GetKey(KeyCode.O))
-        {
-            Instantiate(enemie, new Vector3(0, 1, 0), Quaternion.identity).path = p[spawnpathindex].path;
-            spawnpathindex++;
-            if (spawnpathindex >= p.Count)
-                spawnpathindex = 0;
-        }
+        WaveText.text = "Wave " + wave; 
 
         for (int i = 0; i < p.Count; i++)
         {
@@ -132,8 +131,14 @@ public class gen : MonoBehaviour
                     gtimer += Time.deltaTime;
                     if (gtimer >= group.groupTimer)
                     {
-                        for (int i  = 0; i < p.Count; i++)
-                            Instantiate(enemie, new Vector3(0, 1, 0), Quaternion.identity).path = p[i].path;
+                        for (int i = 0; i < p.Count; i++)
+                        {
+                            EnemieScript e = Instantiate(enemie, new Vector3(0, 1, 0), Quaternion.identity);
+                            e.path = p[i].path;
+                            e.speed = group.e == 1 ? 2 : 6;
+                            e.GetComponent<Renderer>().material.color = group.e == 1 ? Color.red : new Color(0.6f, 0, 0);
+
+                        }
                         ennemieGroupIndex++;
                         gtimer = 0;
                     }
@@ -143,13 +148,11 @@ public class gen : MonoBehaviour
                     wave++;
                     wtimer = 0;
                     ennemieGroupIndex = 0;
+                    StartCoroutine(Generation(8));
                 }
             }
             else
                 wtimer += Time.deltaTime;
-
-
-            Debug.Log("w= " + wave + " " + wtimer + "  " + gtimer);
         }
     }
 

@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class TowerManager : MonoBehaviour
 {
     public bool state = false, ondebug = false;
-    public float range = 5.0f, shottimer = 3.0f;
+    public float range = 5.0f, shottimer = 1.0f;
 
     float timer;
 
@@ -17,12 +18,22 @@ public class TowerManager : MonoBehaviour
 
     public GameObject Ammo;
 
+    public int towerType = 0;
+
     void Start()
     {
         timer = shottimer;
-        anim = transform.GetChild(0).GetComponent<Animator>();
-        ammospawnpos = transform.GetChild(1);
-        shooteffect = ammospawnpos.GetChild(0).GetComponent<ParticleSystem>();
+
+        if (towerType == 0)
+        {
+            anim = transform.GetChild(0).GetComponent<Animator>();
+            ammospawnpos = transform.GetChild(1);
+            shooteffect = ammospawnpos.GetChild(0).GetComponent<ParticleSystem>();
+        }
+        else if (towerType == 1)
+        {
+            ammospawnpos = transform.GetChild(1);
+        }
     }
 
     void Update()
@@ -50,21 +61,35 @@ public class TowerManager : MonoBehaviour
         }
         else
         {
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(((target.transform.position + target.transform.GetComponent<EnemieScript>().speed * target.transform.forward) - transform.position).normalized, Vector3.forward), 3);
-            transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
-
-            timer -= Time.deltaTime;
-            if (timer <= 0)
+            if (towerType == 0)
             {
-                timer = shottimer;
-                Instantiate(Ammo, ammospawnpos.position, Quaternion.identity).GetComponent<amoscript>().dir = transform.forward.normalized;
-                shooteffect.Play();
+
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(((target.transform.position + target.transform.GetComponent<EnemieScript>().speed * target.transform.forward) - transform.position).normalized, Vector3.forward), 3);
+                transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+
+                timer -= Time.deltaTime;
+                if (timer <= 0)
+                {
+                    timer = shottimer;
+                    Instantiate(Ammo, ammospawnpos.position, Quaternion.identity).GetComponent<amoscript>().dir = transform.forward.normalized;
+                    shooteffect.Play();
+                }
+
+                if (!UpState)
+                {
+                    anim.Play("StandUp");
+                    UpState = true;
+                }
             }
-
-            if (!UpState)
+            else
             {
-                anim.Play("StandUp");
-                UpState = true;
+                timer -= Time.deltaTime;
+                float scale = (1 - (timer / shottimer)) * range;
+                ammospawnpos.transform.localScale = new Vector3(scale, ammospawnpos.localScale.y, scale);
+                if (timer <= 0)
+                {
+                    timer = shottimer;
+                }
             }
         }
     }
